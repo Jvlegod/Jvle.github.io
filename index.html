@@ -159,6 +159,182 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
+            <a href="/Jvle.github.io/Jvle.github.io" class="post-title-link" itemprop="url">未命名</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-30 11:59:02" itemprop="dateCreated datePublished" datetime="2024-04-30T11:59:02+08:00">2024-04-30</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="PRETASK"><a href="#PRETASK" class="headerlink" title="PRETASK"></a>PRETASK</h1><h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件:"></a>前置条件:</h2><ol>
+<li><p>使用openEuler</p>
+<p> 镜像下载网址<br> <a target="_blank" rel="noopener" href="https://repo.tarsier-infra.isrc.ac.cn/openEuler-RISC-V/testing/20240407/v0.2/QEMU/">https://repo.tarsier-infra.isrc.ac.cn/openEuler-RISC-V/testing/20240407/v0.2/QEMU/</a></p>
+</li>
+<li><p>安装qemu</p>
+</li>
+<li><p>安装git</p>
+</li>
+</ol>
+<p>这里我建议ssh连接qemu启动的OS，直接使用qemu登录可能会在使用的过程中出现一些奇奇怪怪的情况.openEuler的系统结构与Fedora源 和CentOS源相似，因此在一些操作上可以有所借鉴.</p>
+<h2 id="一、PRETASK1"><a href="#一、PRETASK1" class="headerlink" title="一、PRETASK1"></a>一、PRETASK1</h2><blockquote>
+<p>任务一：通过 QEMU 仿真 RISC-V 环境并启动 openEuler RISC-V 系统，设法输出 neofetch 结果并截图提交</p>
+</blockquote>
+<ol>
+<li><p>什么是neofetch?</p>
+<p> Neofetch 是一个用 Bash 编写的命令行系统信息工具，可以收集和显示有关系统软硬件的信息。</p>
+</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/dylanaraps/neofetch <span class="comment"># GitHub 仓库拉取neofetch</span></span><br><span class="line"><span class="built_in">cd</span> neofetch <span class="comment"># 进入拉取得文件夹</span></span><br><span class="line">make install <span class="comment"># 编译 Neofetch，并将其安装到系统中</span></span><br></pre></td></tr></table></figure>
+
+<p>这样neofetch便安装完成了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./neofetch</span><br></pre></td></tr></table></figure>
+
+<p>于是生成如下截图:</p>
+<p><img src="/Jvle.github.io/pre_pictures/task1.png" alt="alt text"></p>
+<h2 id="二、PRETASK2"><a href="#二、PRETASK2" class="headerlink" title="二、PRETASK2"></a>二、PRETASK2</h2><blockquote>
+<p>任务二：在 openEuler RISC-V 系统上通过 obs 命令行工具 osc，从源代码构建 RISC-V 版本的 rpm 包，比如 pcre2。（提示首先需要在 openEuler的 OBS什么是 OBS？ 上注册账号 <a target="_blank" rel="noopener" href="https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V%EF%BC%89">https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V）</a></p>
+</blockquote>
+<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#54;&#x30;&#x34;&#x36;&#51;&#x31;&#55;&#x33;&#x36;&#x40;&#x71;&#113;&#x2e;&#99;&#x6f;&#109;">&#54;&#x30;&#x34;&#x36;&#51;&#x31;&#55;&#x33;&#x36;&#x40;&#x71;&#113;&#x2e;&#99;&#x6f;&#109;</a>.</p>
+<p>我的理解:</p>
+<ol>
+<li><p>什么是obs?</p>
+<p> obs是一个打包软件</p>
+</li>
+<li><p>什么是osc?</p>
+<p> obs的命令行交互方式</p>
+</li>
+</ol>
+<h3 id="安装方式"><a href="#安装方式" class="headerlink" title="安装方式:"></a>安装方式:</h3><p>可以采用yay直接一步到位:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yay -S osc-git obs-build-git</span><br></pre></td></tr></table></figure>
+
+<p>或者按照如下方式安装:</p>
+<ol>
+<li><p>osc安装</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/openSUSE/osc.git</span><br><span class="line"><span class="built_in">cd</span> osc</span><br><span class="line"><span class="built_in">chmod</span> +x setup.py</span><br><span class="line">./setup.py build</span><br><span class="line">sudo ./setup.py install </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>osc-build(osc build是OBS的本地构建工具)</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/openSUSE/obs-build.git</span><br><span class="line"><span class="built_in">cd</span> obs-build</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>repo文件配置</p>
+<blockquote>
+<p>“截止本文（2023年7月26日）， openEuler 的打包构建服务域名也从 build.openeuler.org 变更为 build.openeuler.openatom.cn ， 但官网域名 <a target="_blank" rel="noopener" href="http://www.openeuler.org/">www.openeuler.org</a> 未见变更。配置~&#x2F;.oscrc时按变更后域名实施。”</p>
+</blockquote>
+<p> 一般放置在 ~&#x2F;.oscrc文件中</p>
+<p> 配置如下:</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[general]</span><br><span class="line">apiurl=https://build.openeuler.openatom.cn/</span><br><span class="line">no_verify = 1</span><br><span class="line"></span><br><span class="line">[https://build.openeuler.openatom.cn/]</span><br><span class="line">user=&lt;your obs name&gt; <span class="comment"># 账户名</span></span><br><span class="line">pass=&lt;your password&gt; <span class="comment"># 账户密码</span></span><br><span class="line">trusted_prj=openEuler:23.09:RISC-V</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>这样，环境就配置完成了.</p>
+<p>下面进行rpm包的构建，包的构建主要有两种方式，一种是在线构建，另一种是osc构建，按照要求，我们用osc进行构建.</p>
+<h3 id="构建步骤"><a href="#构建步骤" class="headerlink" title="构建步骤:"></a>构建步骤:</h3><p>这里以pcre2为例.</p>
+<p>首先找到一个目录，然后输入如下指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">osc co osc co openEuler:23.09:RISC-V pcre2 <span class="comment"># 将软件包的配置信息下载到本地</span></span><br></pre></td></tr></table></figure>
+
+<p>会发现目录下多了一个新的目录文件:</p>
+<p><img src="/Jvle.github.io/pre_pictures/image.png" alt="alt text"></p>
+<p>我们点击进去，之后进入pcre2目录，会发现里面仅有”<strong>_service</strong>“文件，这里可以对service文件进行修改.</p>
+<p>我们使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># openEuler的OBS在线服务器根据_service文件中的描述从gitee下载需要的源码包、补丁和spec文件等，将它们下载到本地</span></span><br><span class="line">osc up -S</span><br></pre></td></tr></table></figure>
+
+<p>将软件包同步到本地.</p>
+<p>但是我们会发现拉取到的文件都是含有”<strong>_service</strong>“，不便于直接使用.因此我们可以对其进行重命名.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> -f _service;<span class="keyword">for</span> file <span class="keyword">in</span> `<span class="built_in">ls</span>`;<span class="keyword">do</span> new_file=<span class="variable">$&#123;file##*:&#125;</span>;<span class="built_in">mv</span> <span class="variable">$file</span> <span class="variable">$new_file</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p>在此我建议使用<strong>alias</strong>命令对其进行别名，以便于后续的使用.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> fix = <span class="string">&#x27;rm -f _service;for file in `ls`;do new_file=$&#123;file##*:&#125;;mv $file $new_file;done&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>下一步就是修改源代码和spec的了，然后使用ci进行提交，或者使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">osc build standard_risv64 riscv64 <span class="comment"># 进行本地构建</span></span><br></pre></td></tr></table></figure>
+
+<p>编译过程和结果如下:<br><img src="/Jvle.github.io/pre_pictures/no-speed-up.jpg" alt="alt text"></p>
+<p><img src="/Jvle.github.io/pre_pictures/task2-2.png" alt="alt text"></p>
+<h2 id="三、PRETASK3"><a href="#三、PRETASK3" class="headerlink" title="三、PRETASK3"></a>三、PRETASK3</h2><blockquote>
+<p>任务三：尝试使用 qemu user &amp; nspawn 或者 docker 加速完成任务二</p>
+</blockquote>
+<p>PS: 我这里试过docker，不过不知道啥原因失败了，于是找了找，了解到了nspawn的解决办法.</p>
+<h3 id="首先下载qemu"><a href="#首先下载qemu" class="headerlink" title="首先下载qemu"></a>首先下载qemu</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 先安装好一些前置的依赖，否则下面在安装qemu的时候会出现一些错误，但是缺哪个安装哪个就行了，这里我列出了我在遇到错误的时候需要安装的一些依赖.</span></span><br><span class="line">sudo dnf install ninja-build flex bison glibc-static pcre-static glib2-static zlib-static</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/qemu/qemu.git</span><br><span class="line"><span class="built_in">cd</span> qemu</span><br><span class="line"><span class="comment"># 1. 这里使用</span></span><br><span class="line">./configure</span><br><span class="line"><span class="comment"># 2. 或者使用</span></span><br><span class="line">./configure \</span><br><span class="line">  --static \</span><br><span class="line">  --enable-attr \</span><br><span class="line">  --enable-tcg \</span><br><span class="line">  --enable-linux-user \</span><br><span class="line">  --target-list=riscv64-linux-user \</span><br><span class="line">  --without-default-devices \</span><br><span class="line">  --without-default-features \</span><br><span class="line">  --disable-install-blobs \</span><br><span class="line">  --disable-debug-info \</span><br><span class="line">  --disable-debug-tcg \</span><br><span class="line">  --disable-debug-mutex</span><br><span class="line"><span class="comment"># 使用2.会节省很多时间，因为去掉了一些不需要的配置项</span></span><br><span class="line"></span><br><span class="line">make -j$(<span class="built_in">nproc</span>) <span class="comment"># 这里也可能直接make速度更快</span></span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+
+<p>之后再qemu的源码目录下执行:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo ./scripts/qemu-binfmt-conf.sh --persistent <span class="built_in">yes</span> --credential <span class="built_in">yes</span> --systemd riscv64</span><br><span class="line">sudo systemctl restart systemd-binfmt </span><br></pre></td></tr></table></figure>
+
+<p>这个时候查看一下systemd-binfmt服务是否被开启</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl status systemd-binfmt.service</span><br></pre></td></tr></table></figure>
+<p>我这里依旧没有开启，于是看了一下报错，大概就是说我哪个文件夹为空，于是简单在相应目录创了个文件.</p>
+<p>结果activate了</p>
+<p><img src="/Jvle.github.io/pre_pictures/end2.png" alt="alt text"></p>
+<h3 id="下载npsawn"><a href="#下载npsawn" class="headerlink" title="下载npsawn"></a>下载npsawn</h3><p>PS:这里我看网上说systemd-container中包含systemd-nspawn</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -name systemd-nspawn</span><br></pre></td></tr></table></figure>
+
+<p>结果发现并没有，于是干脆都安装了一下.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo yum install systemd-container systemd-nspawn</span><br></pre></td></tr></table></figure>
+
+<p>之后使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">osc build standard_riscv64 riscv64 --vm-type=nspawn</span><br></pre></td></tr></table></figure>
+
+<p><img src="/Jvle.github.io/pre_pictures/speed-up.png" alt="alt text"></p>
+<p>加速成功，未加速的时候用时4859，加速后用时2202，快了两倍多.</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/Tridu33/RISC-V/blob/master/doc/tutorials/qemu-user-mode.md">https://github.com/Tridu33/RISC-V/blob/master/doc/tutorials/qemu-user-mode.md</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_52230326/article/details/135271629">https://blog.csdn.net/weixin_52230326/article/details/135271629</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://gitee.com/zxs-un/doc-port2riscv64-openEuler#/zxs-un/doc-port2riscv64-openEuler/blob/master/doc/build-obs-osc-gitignore.md">https://gitee.com/zxs-un/doc-port2riscv64-openEuler#/zxs-un/doc-port2riscv64-openEuler/blob/master/doc/build-obs-osc-gitignore.md</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1YK411H7E2/?vd_source=4e0d0cb650fa7f0cb4ae8b51d183d2e2">https://www.bilibili.com/video/BV1YK411H7E2/?vd_source=4e0d0cb650fa7f0cb4ae8b51d183d2e2</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.mankier.com/1/osc#">https://www.mankier.com/1/osc#</a></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jvlegod.github.io/Jvle.github.io/Jvle.github.io">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/Jvle.github.io/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
             <a href="/Jvle.github.io/Jvle.github.io" class="post-title-link" itemprop="url">My New Post</a>
         </h2>
 
@@ -264,7 +440,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/Jvle.github.io/archives/">
         
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
