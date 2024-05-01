@@ -145,6 +145,259 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/01/rpm%E6%9E%84%E5%BB%BA%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/05/01/rpm%E6%9E%84%E5%BB%BA%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" class="post-title-link" itemprop="url">rpm学习记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-01 15:49:52 / 修改时间：15:50:49" itemprop="dateCreated datePublished" datetime="2024-05-01T15:49:52+08:00">2024-05-01</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="rpm学习记录"><a href="#rpm学习记录" class="headerlink" title="rpm学习记录"></a>rpm学习记录</h1><p>目前为止，网络上相关资料并不太多，因此我想把整个学习过程记录下来.</p>
+<h2 id="什么是spec文件"><a href="#什么是spec文件" class="headerlink" title="什么是spec文件?"></a>什么是spec文件?</h2><p>sepc文件是辅助构建rpm包的一种文件格式，里面指明了构建软件包需要的依赖信息.</p>
+<h2 id="一、常见参数说明-会一直更新"><a href="#一、常见参数说明-会一直更新" class="headerlink" title="一、常见参数说明(会一直更新)"></a>一、常见参数说明(会一直更新)</h2><h3 id="（一）Preamble-Items"><a href="#（一）Preamble-Items" class="headerlink" title="（一）Preamble Items"></a>（一）Preamble Items</h3><ol>
+<li><p>Name</p>
+<p> 软件包的名称: 可以用%{name}引用.</p>
+</li>
+<li><p>Version</p>
+<p> 软件包的版本号: 可以用%{version}引用.</p>
+</li>
+<li><p>Release</p>
+<p> 软件包的发行号: 可以用%{release}引用.</p>
+</li>
+</ol>
+<p>Name，Version，Release组成了rpm包的名字:</p>
+<blockquote>
+<p>The Name, Version, and Release directives comprise the file name of the RPM package. </p>
+</blockquote>
+<ol start="4">
+<li><p>Summary</p>
+<p> 对软件包的简单描述，这里随意写.</p>
+</li>
+<li><p>License</p>
+<p> 授权方式，不同的软件可能不同，常见的是GPL.</p>
+</li>
+<li><p>URL</p>
+<p> 上游网站的链接.</p>
+</li>
+<li><p>Source0&#x2F;1&#x2F;2&#x2F;…</p>
+<p> 常常和URL搭配，这里也可以写软件包的名字，这里举个例子.</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URL:            https://www.example.com/%&#123;name&#125;</span><br><span class="line">Source0:        https://www.example.com/%&#123;name&#125;/releases/%&#123;name&#125;-%&#123;version&#125;.tar.gz</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>BuildRequires</p>
+<p> 这个指令指定了构建该软件包所需的其他软件包。这些软件包通常包含编译器、开发库、构建工具等。在构建软件包时，系统会检查并确保这些依赖软件包已经安装，以便顺利完成构建过程。通常，BuildRequires 指令在 RPM 包的 SPEC 文件的 %build 部分中使用.</p>
+</li>
+<li><p>Requires</p>
+<p> 这个指令指定了运行该软件包所需的其他软件包。这些软件包通常包含运行时库、依赖的系统工具等。在安装软件包时，系统会检查并确保这些依赖软件包已经安装，以便软件包能够正常运行。通常，Requires 指令在 RPM 包的 SPEC 文件的 %install 或 %post 部分中使用.</p>
+</li>
+<li><p>BuildArch</p>
+<p>软件包依赖的架构，不依赖任何架构就写noarch</p>
+</li>
+<li><p>Patch0&#x2F;1&#x2F;2&#x2F;…</p>
+<p>补丁文件.</p>
+</li>
+</ol>
+<h3 id="（二）Body-Items"><a href="#（二）Body-Items" class="headerlink" title="（二）Body Items"></a>（二）Body Items</h3><ol>
+<li><p>%description</p>
+<p> RPM包的完整描述</p>
+</li>
+<li><p>%prep(预处理)</p>
+<p> 通常用来执行一些解开源程序包的命令，例如：unpack source0的内容，除了可以执行RPM所定义的宏命令（以%开头）以外，还可以执行shell命令，一般包含%setup和%patch两个命令.</p>
+ <!-- 作用:
+ 
+ - 如果包含补丁（patch）文件，将补丁文件应用到解开的源码中.
+ -  -->
+</li>
+<li><p>%build(编译)</p>
+<p> 定义编译软件包所要执行的命令，如果要编译的宏使用了 autoconf，那么应当用 %configure 宏来配置软件.</p>
+</li>
+<li><p>%setup</p>
+<p> 参数详解: <a target="_blank" rel="noopener" href="https://rpm-packaging-guide.github.io/#setup">https://rpm-packaging-guide.github.io/#setup</a></p>
+<p> 解压源代码，将当前目录改为源代码解压之后产生的目录.</p>
+<p> 选项: </p>
+<ul>
+<li>-q 在安静silence模式下执行，即在执行时不会显示解压缩的详细信息.</li>
+<li>-n 用于指定解压后的目录名，默认情况下，解压后的目录名将与压缩包的文件名相同，只是去掉了扩展名. <!-- - -c 在解压源代码之前，%setup 宏会先清除旧的解压目录，然后再解压新的源代码. --></li>
+<li>-D and -T <ul>
+<li>-D disables deleting of source code directory</li>
+<li>-T disables expansion of the source code tarball by removing the following line from the script.  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/gzip -dc <span class="string">&#x27;/builddir/build/SOURCES/cello-1.0.tar.gz&#x27;</span> | /usr/bin/tar -xvvof -</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>-a and -b<ul>
+<li>-a after</li>
+<li>-b before</li>
+</ul>
+</li>
+<li>-c 创建一个目录，并在目录里执行</li>
+</ul>
+</li>
+<li><p>%patch</p>
+<ul>
+<li>%patchN 表示使用第N个补丁文件</li>
+</ul>
+</li>
+<li><p>%install</p>
+<p> 安装软件包时候执行命令，类似于<strong>make install</strong>.</p>
+</li>
+<li><p>%clean</p>
+<p> rm-rf $RPM_BUILD_ROOT</p>
+</li>
+<li><p>%files</p>
+<p> 列出所有将会被安装到最终用户系统中的文件。这些文件的路径应该相对于 %buildroot 目录，即安装后文件在系统中的路径.</p>
+</li>
+<li><p>%changelog</p>
+<p> 更新日志</p>
+</li>
+</ol>
+<h2 id="RPM条件语法"><a href="#RPM条件语法" class="headerlink" title="RPM条件语法"></a>RPM条件语法</h2><ol>
+<li><p><strong>%if</strong> 条件</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">%if 0%&#123;?rhel&#125; == 6</span><br><span class="line">sed -i &#x27;/AS_FUNCTION_DESCRIBE/ s/^/#/&#x27; configure.in</span><br><span class="line">sed -i &#x27;/AS_FUNCTION_DESCRIBE/ s/^/#/&#x27; acinclude.m4</span><br><span class="line">%endif</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>%ifarch</strong>&#x2F;<strong>ifnarch</strong> 条件</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">%ifarch i386 sparc</span><br><span class="line">...</span><br><span class="line">%endif</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>%ifos</strong> 条件</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">%ifos linux</span><br><span class="line">...</span><br><span class="line">%endif</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="RPM包的构建"><a href="#RPM包的构建" class="headerlink" title="RPM包的构建"></a>RPM包的构建</h2><p>使用<strong>rpmbuild</strong>指令可以利用.spec文件中的信息构建rpm包.</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-ba</td>
+<td>建立一个 rpm 以及一个.src.rpm</td>
+</tr>
+<tr>
+<td>-bb</td>
+<td>只建立二进制的 rpm</td>
+</tr>
+<tr>
+<td>-bc</td>
+<td>编译但不构建软件包，停止在%build 区段</td>
+</tr>
+<tr>
+<td>-bp</td>
+<td>只做到%prep 区段</td>
+</tr>
+<tr>
+<td>-bi</td>
+<td>在%install 后停止</td>
+</tr>
+<tr>
+<td>-bl</td>
+<td>列出 rpm 中的文件列表</td>
+</tr>
+<tr>
+<td>-bs</td>
+<td>只建立 src.rpm 文件</td>
+</tr>
+</tbody></table>
+<h2 id="RPM的基本指令"><a href="#RPM的基本指令" class="headerlink" title="RPM的基本指令"></a>RPM的基本指令</h2><p><strong>rpm</strong>指令常用来对rpm包进行相关的操作，以下是常见的选项.</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>介绍</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-ivh</td>
+<td>安装</td>
+</tr>
+<tr>
+<td>-qa</td>
+<td>查询</td>
+</tr>
+<tr>
+<td>-e</td>
+<td>删除</td>
+</tr>
+<tr>
+<td>-u</td>
+<td>升级</td>
+</tr>
+<tr>
+<td>-v</td>
+<td>验证</td>
+</tr>
+</tbody></table>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>官方文档:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://rpm-packaging-guide.github.io/">https://rpm-packaging-guide.github.io/</a></li>
+</ul>
+<p>宏的相关说明:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://rpm-software-management.github.io/rpm/manual/macros.html">https://rpm-software-management.github.io/rpm/manual/macros.html</a></li>
+</ul>
+<p>条件语法:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://rpm-packaging-guide.github.io/#_rpm_conditionals_syntax">https://rpm-packaging-guide.github.io/#_rpm_conditionals_syntax</a></li>
+</ul>
+<p>常见参数的说明:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://rpm-packaging-guide.github.io/#what-is-a-spec-file">https://rpm-packaging-guide.github.io/#what-is-a-spec-file</a></li>
+</ul>
+<p>参考链接:</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/younger_china/article/details/53131105">https://blog.csdn.net/younger_china/article/details/53131105</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/younger_china/article/details/53131071">https://blog.csdn.net/younger_china/article/details/53131071</a></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/04/30/openEuler-RISC-V-PreTask.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -212,7 +465,7 @@
 <h2 id="二、PRETASK2"><a href="#二、PRETASK2" class="headerlink" title="二、PRETASK2"></a>二、PRETASK2</h2><blockquote>
 <p>任务二：在 openEuler RISC-V 系统上通过 obs 命令行工具 osc，从源代码构建 RISC-V 版本的 rpm 包，比如 pcre2。（提示首先需要在 openEuler的 OBS什么是 OBS？ 上注册账号 <a target="_blank" rel="noopener" href="https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V%EF%BC%89">https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V）</a></p>
 </blockquote>
-<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#x36;&#48;&#52;&#54;&#x33;&#49;&#55;&#x33;&#x36;&#x40;&#x71;&#x71;&#x2e;&#99;&#111;&#109;">&#x36;&#48;&#52;&#54;&#x33;&#49;&#55;&#x33;&#x36;&#x40;&#x71;&#x71;&#x2e;&#99;&#111;&#109;</a>.</p>
+<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#54;&#x30;&#x34;&#x36;&#51;&#49;&#55;&#x33;&#54;&#64;&#x71;&#113;&#46;&#99;&#x6f;&#x6d;">&#54;&#x30;&#x34;&#x36;&#51;&#49;&#55;&#x33;&#54;&#64;&#x71;&#113;&#46;&#99;&#x6f;&#x6d;</a>.</p>
 <p>我的理解:</p>
 <ol>
 <li><p>什么是obs?</p>
@@ -441,7 +694,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
