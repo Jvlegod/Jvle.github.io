@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.jvleblogs.cn","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Study about obsOBS是完成PRETASK以及后续完成任务的关键，因此花费一定的时间来学习OBS是很重要的.此时的我已经顺利安装了obs 注册详见官网: https:&#x2F;&#x2F;build.openeuler.openatom.cn&#x2F; osc相关指令可以查看: https:&#x2F;&#x2F;www.mankier.com&#x2F;1&#x2F;osc# 一、概念    工程的Metadata文件 包的Metadata文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="obs学习记录">
+<meta property="og:url" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html">
+<meta property="og:site_name" content="blogs">
+<meta property="og:description" content="Study about obsOBS是完成PRETASK以及后续完成任务的关键，因此花费一定的时间来学习OBS是很重要的.此时的我已经顺利安装了obs 注册详见官网: https:&#x2F;&#x2F;build.openeuler.openatom.cn&#x2F; osc相关指令可以查看: https:&#x2F;&#x2F;www.mankier.com&#x2F;1&#x2F;osc# 一、概念    工程的Metadata文件 包的Metadata文件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-1.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-2.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-4.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-5.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-6.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-7.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-8.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-9.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-10.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-12.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-11.png">
+<meta property="og:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-13.png">
+<meta property="article:published_time" content="2024-05-01T14:15:15.000Z">
+<meta property="article:modified_time" content="2024-05-01T14:16:08.097Z">
+<meta property="article:author" content="Jvle">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image.png">
+
+<link rel="canonical" href="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>obs学习记录 | blogs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">blogs</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          obs学习记录
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-01 22:15:15 / 修改时间：22:16:08" itemprop="dateCreated datePublished" datetime="2024-05-01T22:15:15+08:00">2024-05-01</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Study-about-obs"><a href="#Study-about-obs" class="headerlink" title="Study about obs"></a>Study about obs</h1><p>OBS是完成PRETASK以及后续完成任务的关键，因此花费一定的时间来学习OBS是很重要的.此时的我已经顺利安装了obs</p>
+<p>注册详见官网: <a target="_blank" rel="noopener" href="https://build.openeuler.openatom.cn/">https://build.openeuler.openatom.cn/</a></p>
+<p>osc相关指令可以查看: <a target="_blank" rel="noopener" href="https://www.mankier.com/1/osc#">https://www.mankier.com/1/osc#</a></p>
+<h2 id="一、概念"><a href="#一、概念" class="headerlink" title="一、概念"></a>一、概念</h2><p><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image.png" alt="alt text"></p>
+<p><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-1.png" alt="alt text"></p>
+<p><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-2.png" alt="alt text"></p>
+<p><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-4.png" alt="alt text"></p>
+<p>工程的Metadata文件<br><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-5.png" alt="alt text"></p>
+<p>包的Metadata文件<br><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-6.png" alt="alt text"></p>
+<p><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-7.png" alt="alt text"></p>
+<h2 id="二、构建"><a href="#二、构建" class="headerlink" title="二、构建"></a>二、构建</h2><h3 id="（一）在线构建"><a href="#（一）在线构建" class="headerlink" title="（一）在线构建"></a>（一）在线构建</h3><p>搜索到想要构建的包，点击<strong>branch package</strong>选项并<strong>Accept</strong></p>
+<p><img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-8.png" alt="alt text"></p>
+<p>branch之后进行自动构建，每次修改文件都会进行一次构建</p>
+<h3 id="（二）osc构建（本地端构建）"><a href="#（二）osc构建（本地端构建）" class="headerlink" title="（二）osc构建（本地端构建）"></a>（二）osc构建（本地端构建）</h3><ol>
+<li><p>输入<strong>osc branch</strong>指令进行<strong>branch</strong></p>
+<p> <img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-9.png" alt="alt text"></p>
+</li>
+<li><p>使用<strong>osc co</strong>指令拉取到本地</p>
+<p> <img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-10.png" alt="alt text"></p>
+<p> 可以发现只拉取了一个<br> <strong>_service</strong><br> 文件.</p>
+<p> <img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-12.png" alt="alt text"></p>
+<p> 此时就可以对文件例如<br> <strong>_service</strong><br> 进行修改.</p>
+</li>
+<li><p>可以使用<strong>osc ci</strong>命令进行提交</p>
+<p> <img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-11.png" alt="alt text"></p>
+<p> 打开sever端进行查看，发现指令生效.</p>
+</li>
+<li><p>使用<strong>osc up</strong>命令将源码包都拉到本地端.</p>
+<p> <img src="/2024/05/01/obs%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/image-13.png" alt="alt text"></p>
+</li>
+<li><p>使用<strong>osc addremove</strong>、<strong>osc add</strong>、<strong>osc remove</strong>指令进行源代码的修改，修改之后依旧需要使用<strong>osc ci</strong>指令进行提交，才能同步更新到server.</p>
+</li>
+</ol>
+<p>以上就是完成PRETASK所需要用到的知识.</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/05/01/rpm%E6%9E%84%E5%BB%BA%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" rel="prev" title="rpm学习记录">
+      <i class="fa fa-chevron-left"></i> rpm学习记录
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Study-about-obs"><span class="nav-number">1.</span> <span class="nav-text">Study about obs</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%A6%82%E5%BF%B5"><span class="nav-number">1.1.</span> <span class="nav-text">一、概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%9E%84%E5%BB%BA"><span class="nav-number">1.2.</span> <span class="nav-text">二、构建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%88%E4%B8%80%EF%BC%89%E5%9C%A8%E7%BA%BF%E6%9E%84%E5%BB%BA"><span class="nav-number">1.2.1.</span> <span class="nav-text">（一）在线构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%88%E4%BA%8C%EF%BC%89osc%E6%9E%84%E5%BB%BA%EF%BC%88%E6%9C%AC%E5%9C%B0%E7%AB%AF%E6%9E%84%E5%BB%BA%EF%BC%89"><span class="nav-number">1.2.2.</span> <span class="nav-text">（二）osc构建（本地端构建）</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jvle</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jvle</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
