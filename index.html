@@ -145,6 +145,144 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/09/%E4%BA%8C-linux%E8%AE%BE%E5%A4%87.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/05/09/%E4%BA%8C-linux%E8%AE%BE%E5%A4%87.html" class="post-title-link" itemprop="url">(二)linux设备</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-09 20:10:42 / 修改时间：20:10:51" itemprop="dateCreated datePublished" datetime="2024-05-09T20:10:42+08:00">2024-05-09</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>(二)linux设备</strong></p>
+<h2 id="linux文件种类"><a href="#linux文件种类" class="headerlink" title="linux文件种类"></a>linux文件种类</h2><table>
+<thead>
+<tr>
+<th>种类</th>
+<th>表示</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>普通文件</td>
+<td>-</td>
+</tr>
+<tr>
+<td>目录文件</td>
+<td>d</td>
+</tr>
+<tr>
+<td>管道文件</td>
+<td>p</td>
+</tr>
+<tr>
+<td>本地socket文件</td>
+<td>s</td>
+</tr>
+<tr>
+<td>链接文件</td>
+<td>l</td>
+</tr>
+<tr>
+<td>字符设备</td>
+<td>c</td>
+</tr>
+<tr>
+<td>块设备</td>
+<td>b</td>
+</tr>
+</tbody></table>
+<h2 id="linux设备种类"><a href="#linux设备种类" class="headerlink" title="linux设备种类"></a>linux设备种类</h2><ol>
+<li><p>字符设备: 按字节流的形式进行数据读写，一般情况下按顺序访问，数据量不大，一般不设缓存.</p>
+</li>
+<li><p>块设备: 按整块进行数据读写的设备，最小的块大小为512字节（一个扇区），块的大小必须是扇区的整数倍，Linux系统的块大小一般设为4097字节，随机访问，设缓存以提高效率.</p>
+</li>
+<li><p>网络设备: 针对网络数据收发设备.</p>
+</li>
+</ol>
+<h2 id="设备号"><a href="#设备号" class="headerlink" title="设备号"></a>设备号</h2><p>内核用设备号区分同类里面的不同设备，设备号是一个32位的无符号整数，数据类型为dev_t，分为两个部分:</p>
+<ol>
+<li><p>主设备号：占高12位，用来表示</p>
+</li>
+<li><p>次设备号：占低12位，用来表示被操作的哪个具体设备</p>
+</li>
+</ol>
+<p>相关宏:</p>
+<ol>
+<li><p>MKDEV()</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 生成设备号</span></span><br><span class="line"><span class="type">dev_t</span> devno;</span><br><span class="line"><span class="type">int</span> major = <span class="number">251</span>; <span class="comment">// 主设备号</span></span><br><span class="line"><span class="type">int</span> minor = <span class="number">2</span>; <span class="comment">// 次设备号</span></span><br><span class="line">devno = MKDEV(major, minor);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>MAJOR()</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 提取主设备号</span></span><br><span class="line"><span class="type">dev_t</span> devno = MKDEV(<span class="number">251</span>, <span class="number">2</span>);</span><br><span class="line"><span class="type">int</span> major = MAJOR(devno);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>MINOR()</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 提取次设备号</span></span><br><span class="line"><span class="type">dev_t</span> devno = MKDEV(<span class="number">251</span>, <span class="number">2</span>);</span><br><span class="line"><span class="type">int</span> minor = MINOR(devno);</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>如果已知一个设备的设备号，应用层制定好了设备文件，那么我们可以通过mknod命令在&#x2F;dev目录创建代表这个设备的文件，之后对此文件的操作就是对其代表的设备操作，mknod用法如下.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mknod</span> 设备文件名 设备种类(c: 字符设备, b: 块设备) 主设备号 次设备号</span><br></pre></td></tr></table></figure>
+
+<p>同样我们也可以在应用程序中调用mknod函数创建设备.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">mknod</span><span class="params">(<span class="type">const</span> <span class="type">char</span> * pathname, <span class="type">mode_t</span> mode, <span class="type">dev_t</span> dev)</span></span><br><span class="line">pathname: 带路径的设备文件名，无路径默认为当前目录，一般都创建在/dev下</span><br><span class="line">mode: 文件权限</span><br><span class="line">dev: 32位设备号</span><br></pre></td></tr></table></figure>
+
+<h2 id="申请和注销设备号"><a href="#申请和注销设备号" class="headerlink" title="申请和注销设备号"></a>申请和注销设备号</h2><ol>
+<li>申请设备号</li>
+<li>定义、初始化、向内核添加代表本设备的结构体元素</li>
+</ol>
+<p>申请成功后可以在&#x2F;proc&#x2F;devices中找到设备号和对应的设备名。<br>手动申请</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">register_chrdev_region</span><span class="params">(<span class="type">dev_t</span> from, <span class="type">unsigned</span> count, <span class="type">const</span> <span class="type">char</span> *name)</span></span><br><span class="line">参数:</span><br><span class="line">    from: 自己指定的设备号</span><br><span class="line">    count: 申请的设备数量</span><br><span class="line">    name: /proc/devices文件中与该设备对应的名字，方便用户层查询主设备号</span><br><span class="line">返回值:</span><br><span class="line">    成功为0，失败为负数</span><br></pre></td></tr></table></figure>
+<p>自动申请</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">alloc_chrdev_region</span><span class="params">(<span class="type">dev_t</span> *dev, <span class="type">unsigned</span> baseminor, <span class="type">unsigned</span> count, <span class="type">const</span> <span class="type">char</span> *name)</span></span><br><span class="line">参数:</span><br><span class="line">    dev: 分配设备号成功后用来存放分配到的设备号</span><br><span class="line">    baseminior: 其实的次设备号，一般为0</span><br><span class="line">    count: 申请的设备数量</span><br><span class="line">    name: /proc/devices文件中与该设备对应的名字，方便用户层查询主设备号</span><br><span class="line">返回值:</span><br><span class="line">    成功为0，失败为负数</span><br></pre></td></tr></table></figure>
+<p>注销设备号</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">unregister_chrdev_region</span><span class="params">(<span class="type">dev_t</span> from, <span class="type">unsigned</span> count)</span></span><br><span class="line">参数:</span><br><span class="line">    from: 已成功分配的设备号将被释放</span><br><span class="line">    count: 申请成功的设备数量</span><br></pre></td></tr></table></figure>
+<p>释放后对应的&#x2F;proc&#x2F;devices&#x2F;中的信息消失.</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/09/%E4%B8%80-%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1014,7 +1152,7 @@
 <h2 id="二、PRETASK2"><a href="#二、PRETASK2" class="headerlink" title="二、PRETASK2"></a>二、PRETASK2</h2><blockquote>
 <p>任务二：在 openEuler RISC-V 系统上通过 obs 命令行工具 osc，从源代码构建 RISC-V 版本的 rpm 包，比如 pcre2。（提示首先需要在 openEuler的 OBS什么是 OBS？ 上注册账号 <a target="_blank" rel="noopener" href="https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V%EF%BC%89">https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V）</a></p>
 </blockquote>
-<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#54;&#48;&#52;&#x36;&#x33;&#x31;&#x37;&#x33;&#54;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#54;&#48;&#52;&#x36;&#x33;&#x31;&#x37;&#x33;&#54;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>.</p>
+<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#x36;&#x30;&#52;&#54;&#51;&#x31;&#55;&#x33;&#x36;&#64;&#113;&#113;&#46;&#99;&#111;&#109;">&#x36;&#x30;&#52;&#54;&#51;&#x31;&#55;&#x33;&#x36;&#64;&#113;&#113;&#46;&#99;&#111;&#109;</a>.</p>
 <p>我的理解:</p>
 <ol>
 <li><p>什么是obs?</p>
@@ -1186,7 +1324,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
