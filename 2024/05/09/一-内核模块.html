@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.jvleblogs.cn","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="（一）内核模块 向内核新增功能 静态加载法  即新功能源码与linux内核源码在同一目录结构下，然后一起编译进linux  a. 在驱动目录(例如: &#x2F;driver&#x2F;char&#x2F;)下编写驱动代码(myhello.c)  b. 给新功能配置Kconfig   1234567vim Kconfig# 在某一位置添加config MY_HELLO    tristate &amp;q">
+<meta property="og:type" content="article">
+<meta property="og:title" content="(一)内核模块">
+<meta property="og:url" content="http://www.jvleblogs.cn/2024/05/09/%E4%B8%80-%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97.html">
+<meta property="og:site_name" content="blogs">
+<meta property="og:description" content="（一）内核模块 向内核新增功能 静态加载法  即新功能源码与linux内核源码在同一目录结构下，然后一起编译进linux  a. 在驱动目录(例如: &#x2F;driver&#x2F;char&#x2F;)下编写驱动代码(myhello.c)  b. 给新功能配置Kconfig   1234567vim Kconfig# 在某一位置添加config MY_HELLO    tristate &amp;q">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-05-09T11:23:23.000Z">
+<meta property="article:modified_time" content="2024-05-09T11:24:16.973Z">
+<meta property="article:author" content="Jvle">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.jvleblogs.cn/2024/05/09/%E4%B8%80-%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>(一)内核模块 | blogs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">blogs</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/09/%E4%B8%80-%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          (一)内核模块
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-09 19:23:23 / 修改时间：19:24:16" itemprop="dateCreated datePublished" datetime="2024-05-09T19:23:23+08:00">2024-05-09</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>（一）内核模块</strong></p>
+<h2 id="向内核新增功能"><a href="#向内核新增功能" class="headerlink" title="向内核新增功能"></a>向内核新增功能</h2><ol>
+<li><p>静态加载法</p>
+<p> 即新功能源码与linux内核源码在同一目录结构下，然后一起编译进linux</p>
+<ul>
+<li><p>a. 在驱动目录(例如: &#x2F;driver&#x2F;char&#x2F;)下编写驱动代码(myhello.c)</p>
+</li>
+<li><p>b. 给新功能配置Kconfig</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">vim Kconfig</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在某一位置添加</span></span><br><span class="line">config MY_HELLO</span><br><span class="line">    tristate <span class="string">&quot;This is a hello test&quot;</span></span><br><span class="line">    <span class="built_in">help</span></span><br><span class="line">        This is a <span class="built_in">test</span> <span class="keyword">for</span> kernel new <span class="keyword">function</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>c. 给新功能代码改写Makefile</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim Makefile</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加如下</span></span><br><span class="line">obj-$(CONFIG_MY_HELLO)  += myhello.0</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>d.在顶层目录执行 make menuconfig 将新功能选项选成&lt;*&gt;</p>
+</li>
+</ul>
+<p> 这样，驱动就被加入到了内核中，下次make uimage之后，驱动就一并被编译.</p>
+</li>
+<li><p>动态加载</p>
+<p> a. 新功能源码与linux内核源码在同一目录结构下</p>
+<ul>
+<li>1 给新功能配置Kconfig</li>
+<li>2 配置Makefile</li>
+<li>3 make menuconfig 选择成&lt; M &gt;</li>
+<li>4 make uimage</li>
+<li>5 最后make modules，会在新功能源码目录下生成同名的.ko文件</li>
+</ul>
+<p> b. 新功能源码与linux源码不在同一目录结构下</p>
+<ul>
+<li>1 在对应目录编写驱动代码</li>
+<li>2 vim Makefile 并改写对应 Makefile</li>
+<li>3 make     <figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">KERNELDIR := linux源码路径</span><br><span class="line"></span><br><span class="line">CURRENT_PATH := <span class="variable">$(<span class="built_in">shell</span> pwd)</span></span><br><span class="line"></span><br><span class="line">obj-m := 驱动名称.o</span><br><span class="line"><span class="comment"># 多源文件会有如下增加</span></span><br><span class="line">obj-m += 其它C代码.o</span><br><span class="line"></span><br><span class="line"><span class="section">build: kernel_modules</span></span><br><span class="line"></span><br><span class="line"><span class="section">kernel_modules:</span></span><br><span class="line">    <span class="variable">$(MAKE)</span> -C <span class="variable">$(KERNELDIR)</span> M=<span class="variable">$(CURRENT_PATH)</span> modules</span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">    <span class="variable">$(MAKE)</span> -C <span class="variable">$(KERNELDIR)</span> M=<span class="variable">$(CURRENT_PATH)</span> clean</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p> c. 主机使用ko文件</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo insmod 名称.ko <span class="comment"># 将模块插入到正在运行的内核中</span></span><br><span class="line">lsmod <span class="comment"># 查看被插入的内核模块有哪些</span></span><br><span class="line">sudo rmmod 名称 <span class="comment"># 移除模块</span></span><br><span class="line">sudo dmesg -C <span class="comment"># 清除内核已打印的信息</span></span><br><span class="line">dmesg <span class="comment"># 查看内核打印的信息</span></span><br></pre></td></tr></table></figure>
+
+<p> d. 开发板linux使用ko文件</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> 名称.ko ???/rootfs <span class="comment"># 将ko文件拷贝到根文件系统下</span></span><br><span class="line">insmod 名称.ko <span class="comment"># 同上</span></span><br><span class="line">lsmod <span class="comment"># 同上</span></span><br><span class="line">rmmod <span class="comment"># 同上</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="内核代码基础模块解析"><a href="#内核代码基础模块解析" class="headerlink" title="内核代码基础模块解析"></a>内核代码基础模块解析</h2><ol>
+<li><p><strong>__init</strong> 的作用：一个宏，展开后为 “<strong>attribute</strong> ((<strong>section</strong> (“.init.text”)))”. 在模块插入时方便内核从ko文件指定的位置读取该入口函数读到内存中去.</p>
+</li>
+<li><p><strong>__exit</strong> 的作用: “<strong>attribute</strong> ((<strong>section</strong> (“.exit.text”)))”，类似__init</p>
+</li>
+<li><p><strong>MODULE_LICENSE(内容)</strong>: 内容为源码的许可证协议</p>
+</li>
+<li><p><strong>module_init(入口函数)</strong></p>
+</li>
+<li><p><strong>module_exit(出口函数)</strong></p>
+</li>
+</ol>
+<h2 id="内核模块信息宏（可选宏）"><a href="#内核模块信息宏（可选宏）" class="headerlink" title="内核模块信息宏（可选宏）"></a>内核模块信息宏（可选宏）</h2><ol>
+<li><p>MODULE_AUTHOR(字符串常量)</p>
+</li>
+<li><p>MODULE_DESCRIPTION(字符串常量)</p>
+</li>
+<li><p>MODULE_ALIAS(字符串常量)</p>
+</li>
+</ol>
+<p>可以使用 <strong>modinfo 模块文件名</strong> 来查看该信息.</p>
+<h2 id="linux模块传参"><a href="#linux模块传参" class="headerlink" title="linux模块传参"></a>linux模块传参</h2><ol>
+<li><p><strong>module_param(name, type, perm) &#x2F; module_param_array(name, type, &amp;num, perm)</strong></p>
+<ul>
+<li><p>a. name：要传递进去变量名</p>
+</li>
+<li><p>b. type：要传递进去参数的类型。</p>
+<table>
+<thead>
+<tr>
+<th>使用符号</th>
+<th>实际类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bool</td>
+<td>bool</td>
+</tr>
+<tr>
+<td>invbool</td>
+<td>bool</td>
+</tr>
+<tr>
+<td>charp</td>
+<td>char *</td>
+</tr>
+<tr>
+<td>short</td>
+<td>short</td>
+</tr>
+<tr>
+<td>int</td>
+<td>int</td>
+</tr>
+<tr>
+<td>long</td>
+<td>long</td>
+</tr>
+<tr>
+<td>ushort</td>
+<td>unsigned short</td>
+</tr>
+<tr>
+<td>uint</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td>ulong</td>
+<td>unsigned long</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>c. perm：要传递进去参数的读写权限。</p>
+<ul>
+<li>S_IWUSR、S_IRUSR、S_IXUSR；</li>
+<li>S_IRGRP、S_IWGRP、S_IXGRP。</li>
+</ul>
+</li>
+<li><p>d. 举例:</p>
+  <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> int_param, arr_param[<span class="number">4</span>];</span><br><span class="line"><span class="type">char</span> *str_param;</span><br><span class="line"><span class="type">int</span> cb_param = <span class="number">0</span>;</span><br><span class="line">​</span><br><span class="line">module_param(int_param, <span class="type">int</span>, S_IRUSR|S_IWUSR);</span><br><span class="line">module_param(str_param, charp, S_IRUSR|S_IWUSR);                     </span><br><span class="line">module_param_array(arr_param, <span class="type">int</span>, <span class="literal">NULL</span>, S_IRUSR|S_IWUSR);</span><br></pre></td></tr></table></figure></li>
+<li><p>e. 传参方式:</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">insmod xxx.ko 变量名=数值</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h2 id="linux模块依赖"><a href="#linux模块依赖" class="headerlink" title="linux模块依赖"></a>linux模块依赖</h2><ol>
+<li><p>EXPORT_SYMBOL(函数名或全局变量名) &#x2F; EXPORT_SYMBOL_GPL(函数名或全局变量名)(需要GPL许可证)</p>
+<ul>
+<li>举例:<ul>
+<li><p>module_a</p>
+  <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> gx = <span class="number">19</span>;</span><br><span class="line">EXPORT_SYMBOL(gx);</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">chrdevbase_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    printk(<span class="string">&quot;In module_a init gx = %d\n&quot;</span>, gx);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __exit <span class="title function_">chrdevbase_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    printk(<span class="string">&quot;module_a exit&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module_init(chrdevbase_init);</span><br><span class="line">module_exit(chrdevbase_exit);</span><br></pre></td></tr></table></figure></li>
+<li><p>module_b</p>
+  <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> gx;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">chrdevbase_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    printk(<span class="string">&quot;In module_b init gx = %d\n&quot;</span>, gx);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __exit <span class="title function_">chrdevbase_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    printk(<span class="string">&quot;module_b exit&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module_init(chrdevbase_init);</span><br><span class="line">module_exit(chrdevbase_exit);</span><br></pre></td></tr></table></figure>
+
+<p>  注意加载顺序，应该先insmod module_a，之后再insmod module_b</p>
+<p>  注意卸载顺序，应该先rmmod module_a，之后再rmmode module_b</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>nm 文件名 (查看某文件的符号表)</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/05/09/mugen%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95.html" rel="prev" title="mugen学习记录">
+      <i class="fa fa-chevron-left"></i> mugen学习记录
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%91%E5%86%85%E6%A0%B8%E6%96%B0%E5%A2%9E%E5%8A%9F%E8%83%BD"><span class="nav-number">1.</span> <span class="nav-text">向内核新增功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E4%BB%A3%E7%A0%81%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9D%97%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">内核代码基础模块解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97%E4%BF%A1%E6%81%AF%E5%AE%8F%EF%BC%88%E5%8F%AF%E9%80%89%E5%AE%8F%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">内核模块信息宏（可选宏）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux%E6%A8%A1%E5%9D%97%E4%BC%A0%E5%8F%82"><span class="nav-number">4.</span> <span class="nav-text">linux模块传参</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#linux%E6%A8%A1%E5%9D%97%E4%BE%9D%E8%B5%96"><span class="nav-number">5.</span> <span class="nav-text">linux模块依赖</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jvle</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jvle</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
