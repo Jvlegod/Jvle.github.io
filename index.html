@@ -145,6 +145,155 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/11/%E4%B8%89-%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2024/05/11/%E4%B8%89-%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87.html" class="post-title-link" itemprop="url">(三)字符设备</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-05-11 15:33:45 / 修改时间：15:34:10" itemprop="dateCreated datePublished" datetime="2024-05-11T15:33:45+08:00">2024-05-11</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><strong>(三)字符设备</strong></p>
+<h2 id="注册字符设备"><a href="#注册字符设备" class="headerlink" title="注册字符设备"></a>注册字符设备</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">kobject</span> <span class="title">kobj</span>;</span> <span class="comment">// 表示该类型是一种内核对象</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span> <span class="comment">// 填 THIS_MODULE, 表示该字符设备从属于哪个内核模块</span></span><br><span class="line">    <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> *<span class="title">ops</span>;</span> <span class="comment">// 指向空间存放着针对该设备的各种操作函数的地址</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">list</span>;</span> <span class="comment">// 链表指针域</span></span><br><span class="line">    <span class="type">dev_t</span> dev; <span class="comment">// 设备号</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> count; <span class="comment">// 设备数量</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有两种注册的方式:</p>
+<ol>
+<li>直接定义: 定义结构体全局变量</li>
+<li>动态申请: <strong>struct cdev *cdev_alloc()</strong></li>
+</ol>
+<h2 id="相关操作函数"><a href="#相关操作函数" class="headerlink" title="相关操作函数"></a>相关操作函数</h2><ol>
+<li><p><strong>void cdev_init(struct *cdev, const struct file_operations *fops)</strong></p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">module</span> *<span class="title">owner</span>;</span> <span class="comment">// 隶属于的模块，填THIS_MODULE</span></span><br><span class="line">    <span class="type">loff_t</span> (*llseek) (<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="type">int</span>);</span><br><span class="line">    <span class="type">ssize_t</span> (*read) (<span class="keyword">struct</span> file *, <span class="type">char</span> __user *, <span class="type">size_t</span>, <span class="type">loff_t</span> *); <span class="comment">// 读</span></span><br><span class="line">    <span class="type">ssize_t</span> (*write) (<span class="keyword">struct</span> file *, <span class="type">const</span> <span class="type">char</span> __user *, <span class="type">size_t</span>, <span class="type">loff_t</span> *); <span class="comment">// 写</span></span><br><span class="line">    <span class="type">ssize_t</span> (*read_iter) (<span class="keyword">struct</span> kiocb *, <span class="keyword">struct</span> iov_iter *);</span><br><span class="line">    <span class="type">ssize_t</span> (*write_iter) (<span class="keyword">struct</span> kiocb *, <span class="keyword">struct</span> iov_iter *);</span><br><span class="line">    <span class="type">int</span> (*iterate) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> dir_context *);</span><br><span class="line">    <span class="type">int</span> (*iterate_shared) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> dir_context *);</span><br><span class="line">    <span class="type">unsigned</span> <span class="title function_">int</span> <span class="params">(*poll)</span> <span class="params">(<span class="keyword">struct</span> file *, <span class="keyword">struct</span> poll_table_struct *)</span>; <span class="comment">// POLL机制</span></span><br><span class="line">    <span class="type">long</span> (*unlocked_ioctl) (<span class="keyword">struct</span> file *, <span class="type">unsigned</span> <span class="type">int</span>, <span class="type">unsigned</span> <span class="type">long</span>); <span class="comment">// 读写设备参数</span></span><br><span class="line">    <span class="type">long</span> (*compat_ioctl) (<span class="keyword">struct</span> file *, <span class="type">unsigned</span> <span class="type">int</span>, <span class="type">unsigned</span> <span class="type">long</span>);</span><br><span class="line">    <span class="type">int</span> (*mmap) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> vm_area_struct *); <span class="comment">// 映射内核空间到用户空间</span></span><br><span class="line">    <span class="type">int</span> (*open) (<span class="keyword">struct</span> inode *, <span class="keyword">struct</span> file *); <span class="comment">// 打开</span></span><br><span class="line">    <span class="type">int</span> (*flush) (<span class="keyword">struct</span> file *, <span class="type">fl_owner_t</span> id);</span><br><span class="line">    <span class="type">int</span> (*release) (<span class="keyword">struct</span> inode *, <span class="keyword">struct</span> file *); <span class="comment">// 释放</span></span><br><span class="line">    <span class="type">int</span> (*fsync) (<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="type">loff_t</span>, <span class="type">int</span> datasync); <span class="comment">// 异步通知</span></span><br><span class="line">    <span class="type">int</span> (*fasync) (<span class="type">int</span>, <span class="keyword">struct</span> file *, <span class="type">int</span>);</span><br><span class="line">    <span class="type">int</span> (*lock) (<span class="keyword">struct</span> file *, <span class="type">int</span>, <span class="keyword">struct</span> file_lock *);</span><br><span class="line">    <span class="type">ssize_t</span> (*sendpage) (<span class="keyword">struct</span> file *, <span class="keyword">struct</span> page *, <span class="type">int</span>, <span class="type">size_t</span>, <span class="type">loff_t</span> *, <span class="type">int</span>);</span><br><span class="line">    <span class="type">unsigned</span> <span class="title function_">long</span> <span class="params">(*get_unmapped_area)</span><span class="params">(<span class="keyword">struct</span> file *, <span class="type">unsigned</span> <span class="type">long</span>, <span class="type">unsigned</span> <span class="type">long</span>, <span class="type">unsigned</span> <span class="type">long</span>, <span class="type">unsigned</span> <span class="type">long</span>)</span>;</span><br><span class="line">    <span class="type">int</span> (*check_flags)(<span class="type">int</span>);</span><br><span class="line">    <span class="type">int</span> (*flock) (<span class="keyword">struct</span> file *, <span class="type">int</span>, <span class="keyword">struct</span> file_lock *);</span><br><span class="line">    <span class="type">ssize_t</span> (*splice_write)(<span class="keyword">struct</span> pipe_inode_info *, <span class="keyword">struct</span> file *, <span class="type">loff_t</span> *, <span class="type">size_t</span>, <span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line">    <span class="type">ssize_t</span> (*splice_read)(<span class="keyword">struct</span> file *, <span class="type">loff_t</span> *, <span class="keyword">struct</span> pipe_inode_info *, <span class="type">size_t</span>, <span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line">    <span class="type">int</span> (*setlease)(<span class="keyword">struct</span> file *, <span class="type">long</span>, <span class="keyword">struct</span> file_lock **, <span class="type">void</span> **);</span><br><span class="line">    <span class="type">long</span> (*fallocate)(<span class="keyword">struct</span> file *file, <span class="type">int</span> mode, <span class="type">loff_t</span> offset,</span><br><span class="line">                        <span class="type">loff_t</span> len);</span><br><span class="line">    <span class="type">void</span> (*show_fdinfo)(<span class="keyword">struct</span> seq_file *m, <span class="keyword">struct</span> file *f);</span><br><span class="line">    <span class="meta">#<span class="keyword">ifndef</span> CONFIG_MMU</span></span><br><span class="line">    <span class="type">unsigned</span> (*mmap_capabilities)(<span class="keyword">struct</span> file *);</span><br><span class="line">    <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="type">ssize_t</span> (*copy_file_range)(<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="keyword">struct</span> file *,</span><br><span class="line">                                <span class="type">loff_t</span>, <span class="type">size_t</span>, <span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line">    <span class="type">int</span> (*clone_file_range)(<span class="keyword">struct</span> file *, <span class="type">loff_t</span>, <span class="keyword">struct</span> file *, <span class="type">loff_t</span>,</span><br><span class="line">                            u64);</span><br><span class="line">    <span class="type">ssize_t</span> (*dedupe_file_range)(<span class="keyword">struct</span> file *, u64, u64, <span class="keyword">struct</span> file *, u64);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p> 应用层调用驱动函数的步骤:</p>
+<table>
+<thead>
+<tr>
+<th>应用层</th>
+<th>-&gt;</th>
+<th>内核</th>
+<th>-&gt;</th>
+<th>驱动</th>
+<th>-&gt;</th>
+<th>内核</th>
+<th>-&gt;</th>
+<th>应用层</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>open</td>
+<td>-&gt;</td>
+<td>syscall_open</td>
+<td>-&gt;</td>
+<td>drv_open</td>
+<td>-&gt;</td>
+<td>syscall_open</td>
+<td>-&gt;</td>
+<td>open</td>
+</tr>
+</tbody></table>
+</li>
+<li><p><strong>int cdev_add(struct cdev *p, dev_t dev, unsigned int count)</strong></p>
+<p> 功能: 将指定字符设备添加到内核</p>
+<p> 参数:</p>
+<ul>
+<li>p: 指向被添加的设备</li>
+<li>dev: 设备号</li>
+<li>count: 设备数量，一般填1</li>
+</ul>
+</li>
+<li><p><strong>void cdev_del(struct cdev *p)</strong></p>
+<p> 功能: 从内核中移除一个字符设备</p>
+<p> 参数:</p>
+<ul>
+<li>p: 指向被移除的字符设备</li>
+</ul>
+</li>
+</ol>
+<h2 id="字符设备驱动框架解析"><a href="#字符设备驱动框架解析" class="headerlink" title="字符设备驱动框架解析"></a>字符设备驱动框架解析</h2><ol>
+<li><p>结构体说明</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">inode</span> &#123;</span> <span class="comment">// 存储文件的元信息（与文件1对1）</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    <span class="type">dev_t</span> i_rdev; <span class="comment">// 设备号</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> *<span class="title">i_cdev</span>;</span> <span class="comment">// 如果是字符设备才有此成员，指向设备驱动程序中的加入的struct cdev对象</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    1. 内核中每个该结构体对象对应着一个实际文件，一对一</span></span><br><span class="line"><span class="comment">    2. open一个文件时如果内核中该文件对应的inode对象已存在则不再创建，不存在才创建</span></span><br><span class="line"><span class="comment">    3. 内核中用此类型对象关联到对此文件的操作函数集(对设备而言就是关联到具体驱动代码)</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file</span> &#123;</span> <span class="comment">// 读写文件内容过程中用到的一些控制性数据组合而成的对象------文件操作引擎（与open函数1对1，每次open都会创建该对象）</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    <span class="type">mode_t</span> f_mode; <span class="comment">// 不同用户的操作权限，驱动一般不用</span></span><br><span class="line">    <span class="type">loff_t</span> f_pos; <span class="comment">// position 数据位置指示器，需要控制数据开始读写位置的设备有用</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> f_flags; <span class="comment">// open时的第二个参数flags存放在此，驱动中常用</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> *<span class="title">f_op</span>;</span> <span class="comment">// open时从struct inode中i_cdev的对应成员获得地址，驱动开发中用来协助理解工作原理，内核中使用</span></span><br><span class="line">    <span class="type">void</span> *private_data; <span class="comment">// 本次打开文件的私有数据，驱动中常来在几个操作函数间传递共用数据</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dentry</span> *<span class="title">f_dentry</span>;</span> <span class="comment">// 驱动中一般不用，除非需要访问对应文件的inode，用法flip-&gt;f_dentry-&gt;d_inode</span></span><br><span class="line">    <span class="type">int</span> refcnt; <span class="comment">// 引用计数，保存着该对象地址的位置个数，close时发现refcnt为0才会销毁该struct file对象</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>对应关系</p>
+<p> <img src="/2024/05/11/%E4%B8%89-%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87/image.png" alt="alt text"></p>
+</li>
+</ol>
+<h2 id="ioctl操作"><a href="#ioctl操作" class="headerlink" title="ioctl操作"></a>ioctl操作</h2><p>已知成员的地址获得所在结构体变量的地址：<strong>container_of(成员地址, 结构体类型名, 成员在结构体中的名称)</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="title function_">xxx_ioctl</span> <span class="params">(<span class="keyword">struct</span> file *filp, <span class="type">unsigned</span> <span class="type">int</span> cmd, <span class="type">unsigned</span> <span class="type">long</span> arg)</span>;</span><br><span class="line">功能: 对相应设备做指定的控制操作(各种属性的设置获取等等)</span><br><span class="line">参数:</span><br><span class="line">    filp: 指向open产生的<span class="class"><span class="keyword">struct</span> <span class="title">file</span>类型的对象，表示本次<span class="title">ioctl</span>对应的那次<span class="title">open</span></span></span><br><span class="line"><span class="class">    <span class="title">cmd</span>:</span> 用来表示做的是哪一个动作</span><br><span class="line">    arg: 和cmd配合用的参数</span><br><span class="line">返回值:</span><br><span class="line">    成功为<span class="number">0</span>，失败<span class="number">-1</span></span><br></pre></td></tr></table></figure>
+<p>cmd组成</p>
+<table>
+<thead>
+<tr>
+<th>dir</th>
+<th>size</th>
+<th>type</th>
+<th>nr</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&lt;-2bit-&gt;(char类型)</td>
+<td>&lt;-14bit-&gt;</td>
+<td>&lt;-8bit-&gt;</td>
+<td>&lt;-8bit-&gt;(unsigned char类型)</td>
+</tr>
+<tr>
+<td>ioctl命令访问模式</td>
+<td>涉及到ioctl的第三个参数arg</td>
+<td>设备类型(魔数)</td>
+<td>命令编号</td>
+</tr>
+</tbody></table>
+<p>cmd的常用宏</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 其中size为类型名 例如: _IOR(&#x27;k&#x27;, 1, int)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO(type, nr) <span class="comment">// 不做任何操作</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IOR(type, nr, size) <span class="comment">// 读</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IOW(type, nr, size) <span class="comment">// 写</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IOWR(type, nr, size) <span class="comment">// 读写</span></span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/05/09/%E4%BA%8C-linux%E8%AE%BE%E5%A4%87.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -168,10 +317,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2024-05-09 20:10:42 / 修改时间：20:10:51" itemprop="dateCreated datePublished" datetime="2024-05-09T20:10:42+08:00">2024-05-09</time>
+              <time title="创建时间：2024-05-09 20:10:42" itemprop="dateCreated datePublished" datetime="2024-05-09T20:10:42+08:00">2024-05-09</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-05-10 10:46:31" itemprop="dateModified" datetime="2024-05-10T10:46:31+08:00">2024-05-10</time>
+              </span>
 
           
 
@@ -1152,7 +1307,7 @@
 <h2 id="二、PRETASK2"><a href="#二、PRETASK2" class="headerlink" title="二、PRETASK2"></a>二、PRETASK2</h2><blockquote>
 <p>任务二：在 openEuler RISC-V 系统上通过 obs 命令行工具 osc，从源代码构建 RISC-V 版本的 rpm 包，比如 pcre2。（提示首先需要在 openEuler的 OBS什么是 OBS？ 上注册账号 <a target="_blank" rel="noopener" href="https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V%EF%BC%89">https://build.openeuler.openatom.cn/project/show/openEuler:Mainline:RISC-V）</a></p>
 </blockquote>
-<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#x36;&#x30;&#52;&#54;&#51;&#x31;&#55;&#x33;&#x36;&#64;&#113;&#113;&#46;&#99;&#111;&#109;">&#x36;&#x30;&#52;&#54;&#51;&#x31;&#55;&#x33;&#x36;&#64;&#113;&#113;&#46;&#99;&#111;&#109;</a>.</p>
+<p>本任务的重点是了解什么是OBS(open build service)，首先按照提示登录网址，并注册账号，在此我的账号名为jvle, 邮箱是<a href="mailto:&#x36;&#x30;&#52;&#54;&#51;&#49;&#x37;&#x33;&#x36;&#x40;&#113;&#x71;&#46;&#x63;&#111;&#x6d;">&#x36;&#x30;&#52;&#54;&#51;&#49;&#x37;&#x33;&#x36;&#x40;&#113;&#x71;&#46;&#x63;&#111;&#x6d;</a>.</p>
 <p>我的理解:</p>
 <ol>
 <li><p>什么是obs?</p>
@@ -1324,7 +1479,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
