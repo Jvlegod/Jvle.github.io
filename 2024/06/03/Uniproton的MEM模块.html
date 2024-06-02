@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.jvleblogs.cn","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Uniproton的MEM模块 MEM模块管理内存的使用情况，采用空闲链表的方式进行管理. 1234567891011121314&#x2F;&#x2F; 注册的接口函数U32 OsMemConfigReg(void)&#123;    U32 ret;    &#x2F;&#x2F; OS_MEM_FSC_PT_ADDR    &#x2F;&#x2F; OS_MEM_FSC_PT_SIZE    ret &#x3D; OsFscMemInit(OS_MEM_FSC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Uniproton的MEM模块">
+<meta property="og:url" content="http://www.jvleblogs.cn/2024/06/03/Uniproton%E7%9A%84MEM%E6%A8%A1%E5%9D%97.html">
+<meta property="og:site_name" content="blogs">
+<meta property="og:description" content="Uniproton的MEM模块 MEM模块管理内存的使用情况，采用空闲链表的方式进行管理. 1234567891011121314&#x2F;&#x2F; 注册的接口函数U32 OsMemConfigReg(void)&#123;    U32 ret;    &#x2F;&#x2F; OS_MEM_FSC_PT_ADDR    &#x2F;&#x2F; OS_MEM_FSC_PT_SIZE    ret &#x3D; OsFscMemInit(OS_MEM_FSC">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-06-02T16:51:23.000Z">
+<meta property="article:modified_time" content="2024-06-02T16:51:35.859Z">
+<meta property="article:author" content="Jvle">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.jvleblogs.cn/2024/06/03/Uniproton%E7%9A%84MEM%E6%A8%A1%E5%9D%97.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Uniproton的MEM模块 | blogs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">blogs</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/06/03/Uniproton%E7%9A%84MEM%E6%A8%A1%E5%9D%97.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Uniproton的MEM模块
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-06-03 00:51:23 / 修改时间：00:51:35" itemprop="dateCreated datePublished" datetime="2024-06-03T00:51:23+08:00">2024-06-03</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>Uniproton的MEM模块</strong></p>
+<p>MEM模块管理内存的使用情况，采用空闲链表的方式进行管理.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注册的接口函数</span></span><br><span class="line">U32 <span class="title function_">OsMemConfigReg</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    U32 ret;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// OS_MEM_FSC_PT_ADDR</span></span><br><span class="line">    <span class="comment">// OS_MEM_FSC_PT_SIZE</span></span><br><span class="line">    ret = OsFscMemInit(OS_MEM_FSC_PT_ADDR, OS_MEM_FSC_PT_SIZE);</span><br><span class="line">    <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> OS_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TagMemFuncLib</span> &#123;</span></span><br><span class="line">    <span class="type">void</span> *addr;        <span class="comment">/* 分区起始地址 */</span></span><br><span class="line">    MemAllocFunc alloc; <span class="comment">/* 申请一个内存块 */</span></span><br><span class="line">    MemAllocAlignFunc allocAlign; <span class="comment">/* 申请size字节并返回指向已分配内存的指针，内存地址将按照alignPow动态对齐 */</span></span><br><span class="line">    MemFreeFunc <span class="built_in">free</span>;   <span class="comment">/* 释放一个内存块 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="全局变量"><a href="#全局变量" class="headerlink" title="全局变量"></a>全局变量</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">OS_SEC_BSS <span class="class"><span class="keyword">struct</span> <span class="title">TagMemFuncLib</span> <span class="title">g_memArithAPI</span>;</span> <span class="comment">/* 算法对应API */</span></span><br><span class="line">OS_SEC_BSS <span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> <span class="title">g_fscMemNodeList</span>[<span class="title">OS_FSC_MEM_LAST_IDX</span>];</span></span><br><span class="line">OS_SEC_DATA U32 g_fscMemBitMap = <span class="number">1</span>;</span><br><span class="line"><span class="type">uintptr_t</span> g_memTotalSize = <span class="number">0</span>;</span><br><span class="line"><span class="type">uintptr_t</span> g_memUsage = <span class="number">0</span>;</span><br><span class="line"><span class="type">uintptr_t</span> g_memPeakUsage = <span class="number">0</span>;</span><br><span class="line"><span class="type">uintptr_t</span> g_memStartAddr = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="相关宏"><a href="#相关宏" class="headerlink" title="相关宏"></a>相关宏</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> OS_MEM_HEAD_MAGICWORD       0xABAB <span class="comment">/* 内存块的块控制头魔术字，确保为奇数 */</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_MAX_PT_NUM               253</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_MEM_ALIGN_CHECK(value) ((value) &amp; 0x3UL)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_MAGIC_USED                               (struct TagFscMemCtrl *)0x5a5aa5a5</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_LAST_IDX                                 31</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_USED_HEAD_SIZE                           (sizeof(struct TagFscMemCtrl))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_TAIL_SIZE                                (sizeof(uintptr_t))</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_SZGET(currBlk)                           ((U32)(currBlk-&gt;size))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_MAXVAL                                   ((1U &lt;&lt; OS_FSC_MEM_LAST_IDX) - OS_FSC_MEM_SIZE_ALIGN)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_TAIL_MAGIC                               0xABCDDCBA</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_PREV_USED 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_USED_MAGIC OS_MEM_HEAD_MAGICWORD</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_SZ2IDX(size) (31 - OsGetLmb1((U32)(size)))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_IDX2BIT(idx) (0x80000000UL &gt;&gt; (idx))</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_SIZE_ALIGN OS_MEM_ADDR_ALIGN</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_FSC_MEM_MIN_SIZE (OS_FSC_MEM_SLICE_HEAD_SIZE + OS_FSC_MEM_SIZE_ALIGN)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="相关函数"><a href="#相关函数" class="headerlink" title="相关函数"></a>相关函数</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* FSC算法块控制头结构，注意各成员顺序是和其他算法保持一致偏移的，不能随便改动，保持ptNo和其他算法偏移一致 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> *<span class="title">next</span>;</span></span><br><span class="line">    <span class="comment">// 块大小</span></span><br><span class="line">    <span class="type">uintptr_t</span> size;</span><br><span class="line">    <span class="comment">// 若前面相邻的物理块空闲，则此字段记录前面空闲块大小，否则为OS_FSC_MEM_PREV_USED</span></span><br><span class="line">    <span class="type">uintptr_t</span> prevSize;</span><br><span class="line">    <span class="comment">// 空闲时为上一个控制块地址</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> *<span class="title">prev</span>;</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 描述：初始化内存</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">OS_SEC_TEXT U32 <span class="title function_">OsFscMemInit</span><span class="params">(<span class="type">uintptr_t</span> addr, U32 size)</span></span><br><span class="line">&#123;</span><br><span class="line">    U32 idx;</span><br><span class="line">    <span class="comment">// headBlk指向链表的头部</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> *<span class="title">headBlk</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">// currBlk指向链表当前正在操作的内存块</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> *<span class="title">currBlk</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">// nextBlk指向当前正在操作内存块的下一个内存块</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">TagFscMemCtrl</span> *<span class="title">nextBlk</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 异常判断 */</span></span><br><span class="line">    <span class="keyword">if</span> ((<span class="type">void</span> *)(<span class="type">uintptr_t</span>)addr == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> OS_ERRNO_MEM_INITADDR_ISINVALID;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 判断初始化内存地址和大小是否为4字节对齐 */</span></span><br><span class="line">    <span class="comment">// #define OS_MEM_GETBIT(addr) (addr &amp; (uintptr_t)(sizeof(uintptr_t) - 1))</span></span><br><span class="line">    <span class="keyword">if</span> (OS_MEM_GETBIT(addr) != <span class="number">0U</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> OS_ERRNO_MEM_INITADDR_INVALID;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (OS_MEM_GETBIT(size) != <span class="number">0U</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> OS_ERRNO_MEM_INITSIZE_INVALID;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 内存块不可过小</span></span><br><span class="line">    <span class="keyword">if</span> (size &lt; OS_FSC_MEM_USED_HEAD_SIZE) &#123;</span><br><span class="line">        <span class="keyword">return</span> OS_ERRNO_MEM_PTCREATE_SIZE_ISTOOSMALL;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 内存块不可过大</span></span><br><span class="line">    <span class="keyword">if</span> (size &gt; OS_FSC_MEM_MAXVAL) &#123;</span><br><span class="line">        <span class="keyword">return</span> OS_ERRNO_MEM_PTCREATE_SIZE_ISTOOBIG;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// memset_s是libboundscheck库的一个函数，该处是将size大小的空间给addr初始化为0</span></span><br><span class="line">    <span class="keyword">if</span> (memset_s((<span class="type">void</span> *)(<span class="type">uintptr_t</span>)addr, size, <span class="number">0</span>, size) != EOK) &#123;</span><br><span class="line">        OS_GOTO_SYS_ERROR1();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 链表初始化，指向自己 */</span></span><br><span class="line">    headBlk = &amp;g_fscMemNodeList[<span class="number">0</span>];</span><br><span class="line">    <span class="keyword">for</span> (idx = <span class="number">0</span>; idx &lt; OS_FSC_MEM_LAST_IDX; idx++, headBlk++) &#123;</span><br><span class="line">        headBlk-&gt;prev = headBlk;</span><br><span class="line">        headBlk-&gt;next = headBlk;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    size -= OS_FSC_MEM_USED_HEAD_SIZE;</span><br><span class="line"></span><br><span class="line">    g_fscMemBitMap |= <span class="number">1U</span> &lt;&lt; (<span class="number">31</span> - OS_FSC_MEM_LAST_IDX);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 获取索引号 */</span></span><br><span class="line">    idx = OS_FSC_MEM_SZ2IDX(size);</span><br><span class="line">    g_fscMemBitMap |= OS_FSC_MEM_IDX2BIT(idx);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 挂载链表初始化 */</span></span><br><span class="line">    headBlk = &amp;g_fscMemNodeList[idx];</span><br><span class="line">    currBlk = (<span class="keyword">struct</span> TagFscMemCtrl *)(<span class="type">uintptr_t</span>)addr;</span><br><span class="line">    currBlk-&gt;next = headBlk;</span><br><span class="line">    currBlk-&gt;prevSize = <span class="number">0</span>;</span><br><span class="line">    currBlk-&gt;size = size;</span><br><span class="line">    currBlk-&gt;prev = headBlk;</span><br><span class="line">    headBlk-&gt;next = currBlk;</span><br><span class="line">    headBlk-&gt;prev = currBlk;</span><br><span class="line"></span><br><span class="line">    g_memTotalSize = (<span class="type">uintptr_t</span>)size;</span><br><span class="line">    g_memStartAddr = addr;</span><br><span class="line"></span><br><span class="line">    nextBlk = (<span class="keyword">struct</span> TagFscMemCtrl *)((<span class="type">uintptr_t</span>)currBlk + (<span class="type">uintptr_t</span>)currBlk-&gt;size);</span><br><span class="line">    nextBlk-&gt;next = OS_FSC_MEM_MAGIC_USED;</span><br><span class="line">    nextBlk-&gt;size = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    g_memArithAPI.alloc = OsMemAlloc;</span><br><span class="line">    g_memArithAPI.allocAlign = OsMemAllocAlign;</span><br><span class="line">    g_memArithAPI.<span class="built_in">free</span> = OsFscMemFree;</span><br><span class="line"></span><br><span class="line">    g_osMemAlloc = OsMemAlloc;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> OS_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/06/03/Uniproton%E7%9A%84SYS%E6%A8%A1%E5%9D%97.html" rel="prev" title="Uniproton的SYS模块">
+      <i class="fa fa-chevron-left"></i> Uniproton的SYS模块
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A3%B0%E6%98%8E"><span class="nav-number">1.</span> <span class="nav-text">声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F"><span class="nav-number">2.</span> <span class="nav-text">全局变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%AE%8F"><span class="nav-number">3.</span> <span class="nav-text">相关宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%87%BD%E6%95%B0"><span class="nav-number">4.</span> <span class="nav-text">相关函数</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jvle</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jvle</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
