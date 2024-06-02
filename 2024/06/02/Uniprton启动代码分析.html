@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.jvleblogs.cn","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Uniprton启动代码分析 以官方提供的helloworld案例分析。 一、启动流程首先执行bsp&#x2F;boot.s 1234567891011121314.global _start.extern sys_stackEnd.section .text_start:    # 加载sys_stackEnd的地址到sp寄存器    la sp, sys_stackEnd    # init">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Uniprton启动代码分析">
+<meta property="og:url" content="http://www.jvleblogs.cn/2024/06/02/Uniprton%E5%90%AF%E5%8A%A8%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90.html">
+<meta property="og:site_name" content="blogs">
+<meta property="og:description" content="Uniprton启动代码分析 以官方提供的helloworld案例分析。 一、启动流程首先执行bsp&#x2F;boot.s 1234567891011121314.global _start.extern sys_stackEnd.section .text_start:    # 加载sys_stackEnd的地址到sp寄存器    la sp, sys_stackEnd    # init">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-06-02T06:45:17.000Z">
+<meta property="article:modified_time" content="2024-06-02T06:45:59.143Z">
+<meta property="article:author" content="Jvle">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://www.jvleblogs.cn/2024/06/02/Uniprton%E5%90%AF%E5%8A%A8%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Uniprton启动代码分析 | blogs</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">blogs</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://www.jvleblogs.cn/2024/06/02/Uniprton%E5%90%AF%E5%8A%A8%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jvle">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="blogs">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Uniprton启动代码分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-06-02 14:45:17 / 修改时间：14:45:59" itemprop="dateCreated datePublished" datetime="2024-06-02T14:45:17+08:00">2024-06-02</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>Uniprton启动代码分析</strong></p>
+<p>以官方提供的helloworld案例分析。</p>
+<h2 id="一、启动流程"><a href="#一、启动流程" class="headerlink" title="一、启动流程"></a>一、启动流程</h2><p>首先执行<strong>bsp&#x2F;boot.s</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">.global _start</span><br><span class="line">.extern sys_stackEnd</span><br><span class="line">.section .text</span><br><span class="line">_start:</span><br><span class="line">    # 加载sys_stackEnd的地址到sp寄存器</span><br><span class="line">    la sp, sys_stackEnd</span><br><span class="line">    # init the fs in mstatus to enable f/d instructions</span><br><span class="line">    # mstatus寄存器的13和14位用于控制浮点状态</span><br><span class="line">    li t0, 0x2000 # 0010 0000 0000 0000</span><br><span class="line">    csrrs zero, mstatus, t0 # 启动浮点指令</span><br><span class="line">    call main # 执行main函数</span><br><span class="line">_spin:</span><br><span class="line">    wfi </span><br><span class="line">    j _spin</span><br></pre></td></tr></table></figure>
+
+<p>之后跳到<strong>main函数</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> OsConfigStart();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>自然执行 <strong>OsConfigStart()</strong> ，在 <strong>config&#x2F;prt_config.c</strong> 中，在该函数中，依次执行了<strong>OsHwInit()<strong>，</strong>OsRegister()<strong>，</strong>OsInitialize()<strong>，</strong>OsStart()</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">S32 <span class="title function_">OsConfigStart</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    U32 ret;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* OS的硬件初始化 */</span></span><br><span class="line">    OsHwInit();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* OS模块注册 */</span></span><br><span class="line">    ret = OsRegister();</span><br><span class="line">    <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> (S32)ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* OS模块初始化 */</span></span><br><span class="line">    ret = OsInitialize();</span><br><span class="line">    <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> (S32)ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* OS启动调度 */</span></span><br><span class="line">    ret = OsStart();</span><br><span class="line">    <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> (S32)ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Execution should not reach this point */</span></span><br><span class="line">    <span class="keyword">return</span> (S32)OS_ERROR;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码执行到<strong>OsStart()</strong> 中之后就不会再执行 <strong>OsConfigStart()</strong> 下面的部分了</p>
+<h3 id="二、OsConfigStart函数流程解析"><a href="#二、OsConfigStart函数流程解析" class="headerlink" title="二、OsConfigStart函数流程解析"></a>二、OsConfigStart函数流程解析</h3><ol>
+<li><p>**OsHwInit()**，在main.c中</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">TskHandle g_pid;</span><br><span class="line"><span class="type">void</span> <span class="title function_">OsHwInit</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 关闭全局中断</span></span><br><span class="line">    w_mstatus(r_mstatus() &amp; (~MIE)); </span><br><span class="line">    <span class="comment">// 使能外部中断，软件中断，以及定时器中断</span></span><br><span class="line">    w_mie(r_mie() | MEIE | MSIE | MTIE);</span><br><span class="line">    <span class="comment">// mtvec是指向发生异常时程序处理的地址，此处是将该地址指向到的trap所在位置</span></span><br><span class="line">    U64 x = (U64)trap;</span><br><span class="line">    OS_EMBED_ASM(<span class="string">&quot;csrw mtvec, %0&quot;</span>::<span class="string">&quot;r&quot;</span>(x):);</span><br><span class="line">    <span class="comment">//w_mtvec((U64)trap);</span></span><br><span class="line">    <span class="comment">// 获取当前核心的ID</span></span><br><span class="line">    U64 coreId = PRT_GetCoreID();</span><br><span class="line">    <span class="comment">// 更新定时器时间</span></span><br><span class="line">    U64 nowTime = *(U64 *)CLINT_TIME;</span><br><span class="line">    *(U64* )CLINT_TIMECMP(coreId) = (nowTime + OS_TICK_PER_SECOND);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>OsRegister()<strong>，在</strong>config&#x2F;prt_config.c</strong>中</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">U32 <span class="title function_">OsRegister</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// OS_REGISTER_PHASE = 0x09</span></span><br><span class="line">    <span class="comment">// OS_REGISTER_ID = 0</span></span><br><span class="line">    <span class="keyword">return</span> OsModuleConfigRun(OS_REGISTER_ID, OS_REGISTER_PHASE);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// config/prt_config_internal.h</span></span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">OsinitPhaseId</span> &#123;</span></span><br><span class="line">    OS_REGISTER_ID = <span class="number">0</span>,</span><br><span class="line">    OS_INIT_ID,</span><br><span class="line">    OS_MOUDLE_CONFIG</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// config/prt_config.c</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 表示系统在进行OS模块注册阶段，匹配MOUDLE_ID之后，标记进入MODULE_ID的注册。</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OS_REGISTER_PHASE 0x09</span></span><br></pre></td></tr></table></figure>
+<p> 此处调用了<strong>OsModuleConfigRun()<strong>函数，其依旧在</strong>config&#x2F;prt_config.c</strong>中</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 描述：OS模块注册、初始化运行函数</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">U32 <span class="title function_">OsModuleConfigRun</span><span class="params">(<span class="keyword">enum</span> OsinitPhaseId initPhaseId, U32 initPhase)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">    * g_moduleConfigTab是系统初始化注册表，详见如下</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    U32 idx = <span class="number">0</span>;</span><br><span class="line">    U32 ret = OS_OK;</span><br><span class="line">    <span class="comment">// 此处遍历整个注册表，如何注册表的函数地址不为空，那么就对表中所有注册/初始化函数进行调用</span></span><br><span class="line">    <span class="keyword">while</span> (g_moduleConfigTab[idx].moudleId != OS_MID_BUTT) &#123;</span><br><span class="line">        <span class="keyword">if</span> (g_moduleConfigTab[idx].moudleConfigFunc[initPhaseId] == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            idx++;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 调用注册函数进行注册</span></span><br><span class="line">        ret = g_moduleConfigTab[idx].moudleConfigFunc[initPhaseId]();</span><br><span class="line">        <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        idx++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">OsModuleConfigInfo</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">enum</span> <span class="title">MoudleId</span> <span class="title">moudleId</span>;</span></span><br><span class="line">    <span class="comment">// typedef U32 (*ConfigInitFunc)(void);</span></span><br><span class="line">    ConfigInitFunc moudleConfigFunc[OS_MOUDLE_CONFIG]; <span class="comment">// 这里OS_MOUDLE_CONFIG为2</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 系统初始化注册表 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">OsModuleConfigInfo</span> <span class="title">g_moduleConfigTab</span>[] =</span> &#123;</span><br><span class="line">    <span class="comment">/* &#123;模块号， 模块注册函数， 模块初始化函数&#125; */</span></span><br><span class="line">    &#123;OS_MID_SYS, &#123;OsSysConfigReg, <span class="literal">NULL</span>&#125;&#125;,</span><br><span class="line">    &#123;OS_MID_MEM, &#123;OsMemConfigReg, OsMemConfigInit&#125;&#125;,</span><br><span class="line">    &#123;OS_MID_HWI, &#123;OsHwiConfigReg, OsHwiConfigInit&#125;&#125;,</span><br><span class="line">    &#123;OS_MID_HARDDRV, &#123;<span class="literal">NULL</span>, PRT_HardDrvInit&#125;&#125;,</span><br><span class="line">    &#123;OS_MID_HOOK, &#123;OsHookConfigReg, OsHookConfigInit&#125;&#125;,</span><br><span class="line">    &#123;OS_MID_EXC, &#123;<span class="literal">NULL</span>, OsExcConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_TASK == YES)</span></span><br><span class="line">    &#123;OS_MID_TSK, &#123;OsTskConfigReg, OsTskConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_TICK == YES)</span></span><br><span class="line">    &#123;OS_MID_TICK, &#123;OsTickConfigReg, OsTickConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_TICK_SWTMER == YES)</span></span><br><span class="line">    &#123;OS_MID_SWTMR, &#123;<span class="literal">NULL</span>, OsSwTmrConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_CPUP == YES)</span></span><br><span class="line">    &#123;OS_MID_CPUP, &#123;OsCpupConfigReg, OsCpupConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_SEM == YES)</span></span><br><span class="line">    &#123;OS_MID_SEM, &#123;OsSemConfigReg, OsSemConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_QUEUE == YES)</span></span><br><span class="line">    &#123;OS_MID_QUEUE, &#123;OsQueueConfigReg, OsQueueConfigInit&#125;&#125;,</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    &#123;OS_MID_APP, &#123;<span class="literal">NULL</span>, PRT_AppInit&#125;&#125;,</span><br><span class="line"></span><br><span class="line">    &#123;OS_MID_BUTT, &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>&#125;&#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// include/prt_module.h</span></span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">MoudleId</span> &#123;</span></span><br><span class="line">    OS_MID_SYS = <span class="number">0x0</span>, <span class="comment">/* 系统模块 */</span></span><br><span class="line">    OS_MID_MEM = <span class="number">0x1</span>, <span class="comment">/* 内存模块 */</span></span><br><span class="line">    OS_MID_FSCMEM = <span class="number">0x2</span>,</span><br><span class="line">    OS_MID_TSK = <span class="number">0x3</span>,</span><br><span class="line">    OS_MID_SWTMR = <span class="number">0x4</span>,</span><br><span class="line">    OS_MID_TICK = <span class="number">0x5</span>,</span><br><span class="line">    OS_MID_CPUP = <span class="number">0x6</span>,</span><br><span class="line">    OS_MID_SEM = <span class="number">0x7</span>,</span><br><span class="line">    OS_MID_HWI = <span class="number">0x8</span>,</span><br><span class="line">    OS_MID_HOOK = <span class="number">0x9</span>,</span><br><span class="line">    OS_MID_EXC = <span class="number">0xa</span>,</span><br><span class="line">    OS_MID_EVENT = <span class="number">0xb</span>,</span><br><span class="line">    OS_MID_QUEUE = <span class="number">0xc</span>,</span><br><span class="line">    OS_MID_TIMER = <span class="number">0xd</span>,</span><br><span class="line">    OS_MID_HARDDRV = <span class="number">0xe</span>,</span><br><span class="line">    OS_MID_APP = <span class="number">0xf</span>,</span><br><span class="line">    OS_MID_SIGNAL = <span class="number">0x10</span>,</span><br><span class="line">    OS_MID_SHELL = <span class="number">0x11</span>,</span><br><span class="line">    OS_MID_SCHED = <span class="number">0X12</span>,</span><br><span class="line">    OS_MID_SPL = <span class="number">0X13</span>,</span><br><span class="line">    OS_MID_BUTT</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>OsInitialize()<strong>，在</strong>config&#x2F;prt_config.c</strong>中</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 描述：OsInitialize阶段</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">U32 <span class="title function_">OsInitialize</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// OS_INITIALIZE_PHASE = 0x0a</span></span><br><span class="line">    <span class="comment">// OS_INIT_ID = 1</span></span><br><span class="line">    <span class="keyword">return</span> OsModuleConfigRun(OS_INIT_ID, OS_INITIALIZE_PHASE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>OsStart()<strong>，在</strong>config&#x2F;prt_config.c</strong>中</p>
+ <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 描述：OsStart阶段</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">U32 <span class="title function_">OsStart</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    U32 ret;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_TICK == YES)</span></span><br><span class="line">    <span class="comment">/* 表示系统在进行启动阶段，匹配MOUDLE_ID之后，标记进入TICK模块的启动 */</span></span><br><span class="line">    ret = OsTickStart();</span><br><span class="line">    <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    uart_putstr_sync(<span class="string">&quot;start!!!!\n&quot;</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (OS_INCLUDE_TASK == YES)</span></span><br><span class="line">    <span class="comment">/* 表示系统在进行启动阶段，匹配MOUDLE_ID之后，标记进入任务模块的启动 */</span></span><br><span class="line">    ret = OsActivate();</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    ret = OS_OK;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// UniProton/src/core/kernel/tick/prt_tick_init.c</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 描述：启动Tick中断</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">OS_SEC_L4_TEXT U32 <span class="title function_">OsTickStart</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> OS_OK;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// UniProton/src/core/kernel/task/amp/prt_task_init.c</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 描述：激活任务管理</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">OS_SEC_L4_TEXT U32 <span class="title function_">OsActivate</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    U32 ret;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建idle任务</span></span><br><span class="line">    ret = OsIdleTskAMPCreate();</span><br><span class="line">    <span class="keyword">if</span> (ret != OS_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    OsTskHighestSet();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Indicate that background task is running. */</span></span><br><span class="line"></span><br><span class="line">    UNI_FLAG |= OS_FLG_BGD_ACTIVE | OS_FLG_TSK_REQ;</span><br><span class="line"></span><br><span class="line">    OS_MHOOK_ACTIVATE_PARA0(OS_HOOK_FIRST_TIME_SWH);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Start Multitasking. */</span></span><br><span class="line">    <span class="comment">// 任务切换，此时正式开始</span></span><br><span class="line">    OsFirstTimeSwitch();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> OS_ERRNO_TSK_ACTIVE_FAILED;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/05/11/%E4%B8%89-%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87.html" rel="prev" title="(三)字符设备">
+      <i class="fa fa-chevron-left"></i> (三)字符设备
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">一、启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81OsConfigStart%E5%87%BD%E6%95%B0%E6%B5%81%E7%A8%8B%E8%A7%A3%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">二、OsConfigStart函数流程解析</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jvle</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jvle</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
